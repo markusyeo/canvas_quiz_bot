@@ -1,3 +1,6 @@
+# Quizzes...
+Written for someone who doesn't want to go to lectures but then wants to be informed when there is a quiz opening.
+
 ## To run the bot, you can use docker or run it manually
 ### To run it manually
 1. Install python3.9 or higher
