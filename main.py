@@ -4,17 +4,18 @@ import telebot
 from env import BOT_TOKEN
 from env import CANVAS_COURSE_ID
 from env import MINUTES
+from env import REFRESH_TIME
+from env import CHAT_ID
 from datetime import datetime as dt
 from datetime import timezone
 from dateutil.relativedelta import relativedelta as rd
-from env import CHAT_ID
 import time
 
 def date_parser(stringdate):
     try:
         stringdate = stringdate.replace('Z', '+00:00')
         datetime = dt.fromisoformat(stringdate)
-        cond = (datetime < (dt.now(timezone.utc) + rd(minutes = MINUTES)))
+        cond = (dt.now(timezone.utc) < datetime < (dt.now(timezone.utc) + rd(minutes = MINUTES)))
     except:
         cond = False
     return cond
@@ -28,12 +29,20 @@ def get_quizzes(course):
     quizzes = list(filter(lambda x: (date_parser(x[8]) or date_parser(x[9]) or date_parser(x[10])) , quizzes))
     return quizzes
 
+def convert_utc_to_local(utc_datetime):
+    try:
+        stringdate = utc_datetime.replace('Z', '+00:00')
+        datetime = dt.fromisoformat(stringdate)
+        return datetime.replace(tzinfo=timezone.utc).astimezone(tz=None)
+    except:
+        return utc_datetime
+
 def format_quiz(quiz):
     msg = f'''You have an upcoming quiz:
     Title: {quiz[1]}
-    Due at: {quiz[8]}
-    Unlock at: {quiz[9]}
-    Lock at: {quiz[10]}
+    Due at: {convert_utc_to_local(quiz[8])}
+    Unlock at: {convert_utc_to_local(quiz[9])}
+    Lock at: {convert_utc_to_local(quiz[10])}
     HTML URL: {quiz[2]}
     '''
     return msg
@@ -58,7 +67,7 @@ if __name__ == "__main__":
     while True:
         print('Checking for quizzes')
         handle_quizzes(canvas)
-        time.sleep(30)
+        time.sleep(REFRESH_TIME)
         
     # Use this handler by commenting out the above while loop
     @bot.message_handler(commands=['quiz'])
